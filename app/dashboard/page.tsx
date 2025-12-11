@@ -1,4 +1,5 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { ElevenLabsWidget } from '../components/elevenlabs-widget'
 
 export default function DashboardPage() {
 	return (
@@ -93,6 +94,7 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 			</div>
+			<ElevenLabsWidget />
 		</div>
 	)
 }
