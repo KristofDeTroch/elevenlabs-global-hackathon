@@ -1,0 +1,200 @@
+datasource db {
+    provider = "postgresql" // or mysql/sqlite
+}
+
+generator client {
+    provider = "prisma-client-js"
+}
+
+// --------------------------------------
+// User Management & RBAC
+// --------------------------------------
+
+model User {
+    id        String   @id @default(uuid())
+    email     String   @unique
+    name      String?
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    memberships   OrganizationMember[]
+    eventsCreated CaseEvent[] // Audit trail: who did what?
+}
+
+model Organization {
+    id        String   @id @default(uuid())
+    name      String
+    createdAt DateTime @default(now())
+
+    memberships OrganizationMember[]
+    roles       Role[]
+    debtors     Debtor[]
+    cases       Case[]
+}
+
+model Role {
+    id             String       @id @default(uuid())
+    name           String // e.g., "Admin", "Collection Agent", "Viewer"
+    description    String?
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
+
+    // You can add a JSON field here later for granular permissions (e.g., { "canEditPayments": true })
+    permissions Json?
+
+    members OrganizationMember[]
+
+    @@unique([name, organizationId]) // Prevent duplicate role names in one Org
+}
+
+model OrganizationMember {
+    id             String @id @default(uuid())
+    userId         String
+    organizationId String
+    roleId         String
+
+    user         User         @relation(fields: [userId], references: [id])
+    organization Organization @relation(fields: [organizationId], references: [id])
+    role         Role         @relation(fields: [roleId], references: [id])
+
+    @@unique([userId, organizationId]) // A user can't join the same org twice
+}
+
+// --------------------------------------
+// Core Domain: Debtors & Cases
+// --------------------------------------
+
+enum DebtorType {
+    INDIVIDUAL
+    COMPANY
+}
+
+model Debtor {
+    id             String       @id @default(uuid())
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
+
+    type DebtorType @default(INDIVIDUAL)
+
+    // Basic Info
+    firstName   String? // Nullable if Company
+    lastName    String? // Nullable if Company
+    companyName String? // Nullable if Individual
+
+    // Contact & Legal
+    email      String?
+    phone      String?
+    taxId      String? // SSN or VAT/EIN
+    address    String?
+    city       String?
+    postalCode String?
+
+    cases     Case[]
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([email])
+    @@index([phone])
+}
+
+enum CaseStatus {
+    NEW
+    ACTIVE
+    PENDING_APPROVAL
+    BROKEN_PROMISE
+    PAID_IN_FULL
+    UNCOLLECTIBLE
+    CLOSED
+}
+
+model Case {
+    id             String       @id @default(uuid())
+    organizationId String
+    organization   Organization @relation(fields: [organizationId], references: [id])
+
+    debtorId String
+    debtor   Debtor @relation(fields: [debtorId], references: [id])
+
+    // Efficient Query Fields (Extracted from JSON)
+    status            CaseStatus @default(NEW)
+    externalReference String? // The ID the client gave this debt (e.g. Inv-1001)
+
+    // Financials - Using Decimal for money (Float is dangerous for currency)
+    originalAmount Decimal  @db.Decimal(10, 2)
+    currentBalance Decimal  @db.Decimal(10, 2)
+    interestRate   Decimal? @default(0)
+
+    // Timestamps for filtering
+    dueDate         DateTime? // When the original debt was due
+    lastContactDate DateTime?
+    nextActionDate  DateTime? // For queueing agents
+
+    // Flexible data for client-specific needs
+    details Json?
+
+    payments Payment[]
+    events   CaseEvent[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    // Indexes for high-performance dashboards
+    @@index([organizationId, status])
+    @@index([organizationId, nextActionDate])
+    @@index([externalReference])
+}
+
+// --------------------------------------
+// Operations: Payments & History
+// --------------------------------------
+
+enum PaymentStatus {
+    PLANNED // "I promise to pay next week"
+    PENDING // "Card charged, waiting for settlement"
+    CLEARED // "Money in bank"
+    REJECTED // "NSF / Bounced"
+    CANCELLED
+}
+
+model Payment {
+    id     String @id @default(uuid())
+    caseId String
+    case   Case   @relation(fields: [caseId], references: [id])
+
+    amount Decimal       @db.Decimal(10, 2)
+    status PaymentStatus @default(PLANNED)
+
+    scheduledDate DateTime // When it is supposed to happen
+    processedDate DateTime? // When it actually happened
+
+    method    String? // "STRIPE", "ACH", "CHECK"
+    reference String? // Transaction ID
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum EventType {
+    CALL_OUTBOUND
+    CALL_INBOUND
+    EMAIL_SENT
+    EMAIL_RECEIVED
+    NOTE
+    STATUS_CHANGE
+    PAYMENT_UPDATE
+}
+
+model CaseEvent {
+    id     String @id @default(uuid())
+    caseId String
+    case   Case   @relation(fields: [caseId], references: [id])
+
+    userId String? // Nullable because system might create events (auto-reminders)
+    user   User?   @relation(fields: [userId], references: [id])
+
+    type        EventType
+    description String // "Call lasted 5m, debtor hung up"
+    metadata    Json? // Store extra data like Call Recording URL or Email ID
+
+    createdAt DateTime @default(now())
+}
