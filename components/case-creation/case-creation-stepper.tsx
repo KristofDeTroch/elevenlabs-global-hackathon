@@ -1,13 +1,14 @@
-"use client";
+'use client'
 
-import { useState } from "react";
-import { DebtorChoiceStep } from "./debtor-choice-step";
-import { DebtorCreationStep } from "./debtor-creation-step";
-import { DebtorSelectionStep } from "./debtor-selection-step";
-import { CaseCreationStep } from "./case-creation-step";
-import { Card, CardContent } from "@/components/ui/card";
-import type { DebtorFormData } from "@/lib/validations/debtor-schema";
-import type { CaseFormData } from "@/lib/validations/case-schema";
+import { useState } from 'react'
+import { DebtorChoiceStep } from './debtor-choice-step'
+import { DebtorCreationStep } from './debtor-creation-step'
+import { DebtorSelectionStep } from './debtor-selection-step'
+import { CaseCreationStep } from './case-creation-step'
+import { Card, CardContent } from '@/components/ui/card'
+import { Users, CheckCircle2, FileText } from 'lucide-react'
+import type { DebtorFormData } from '@/lib/validations/debtor-schema'
+import type { CaseFormData } from '@/lib/validations/case-schema'
 
 interface Debtor {
   id: string;
@@ -150,110 +151,124 @@ export function CaseCreationStepper({
     ? debtors.find((d) => d.id === selectedDebtorId)
     : null;
 
-  return (
-    <div className="flex flex-col gap-6">
-      {/* Progress Indicator */}
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                  getStepNumber() >= 1
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                1
-              </div>
-              <span
-                className={
-                  getStepNumber() >= 1 ? "font-medium" : "text-muted-foreground"
-                }
-              >
-                Choose Debtor
-              </span>
-            </div>
-            <div className="h-px flex-1 bg-border mx-4" />
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                  getStepNumber() >= 2
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                2
-              </div>
-              <span
-                className={
-                  getStepNumber() >= 2 ? "font-medium" : "text-muted-foreground"
-                }
-              >
-                {selectedChoice === "new" ? "Create Debtor" : "Select Debtor"}
-              </span>
-            </div>
-            <div className="h-px flex-1 bg-border mx-4" />
-            <div className="flex items-center gap-2">
-              <div
-                className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                  getStepNumber() >= 3
-                    ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
-                }`}
-              >
-                3
-              </div>
-              <span
-                className={
-                  getStepNumber() >= 3 ? "font-medium" : "text-muted-foreground"
-                }
-              >
-                Create Case
-              </span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+	return (
+		<div className="flex flex-col gap-6">
+			{/* Progress Indicator */}
+			<Card className="border-2 shadow-lg bg-gradient-to-r from-white to-blue-50 dark:from-slate-900 dark:to-slate-800">
+				<CardContent className="pt-6">
+					<div className="flex items-center justify-between">
+						<div className="flex items-center gap-3">
+							<div
+								className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+									getStepNumber() >= 1
+										? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-110'
+										: 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+								}`}
+							>
+								{getStepNumber() > 1 ? (
+									<CheckCircle2 className="h-5 w-5" />
+								) : (
+									<Users className="h-5 w-5" />
+								)}
+							</div>
+							<span
+								className={`font-medium transition-all ${
+									getStepNumber() >= 1
+										? 'text-slate-900 dark:text-white'
+										: 'text-slate-500'
+								}`}
+							>
+								Choose Debtor
+							</span>
+						</div>
+						<div className="h-0.5 flex-1 bg-gradient-to-r from-slate-300 to-slate-200 dark:from-slate-700 dark:to-slate-800 mx-4" />
+						<div className="flex items-center gap-3">
+							<div
+								className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+									getStepNumber() >= 2
+										? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-110'
+										: 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+								}`}
+							>
+								{getStepNumber() > 2 ? (
+									<CheckCircle2 className="h-5 w-5" />
+								) : (
+									<span className="text-sm font-bold">2</span>
+								)}
+							</div>
+							<span
+								className={`font-medium transition-all ${
+									getStepNumber() >= 2
+										? 'text-slate-900 dark:text-white'
+										: 'text-slate-500'
+								}`}
+							>
+								{selectedChoice === 'new' ? 'Create Debtor' : 'Select Debtor'}
+							</span>
+						</div>
+						<div className="h-0.5 flex-1 bg-gradient-to-r from-slate-300 to-slate-200 dark:from-slate-700 dark:to-slate-800 mx-4" />
+						<div className="flex items-center gap-3">
+							<div
+								className={`flex h-10 w-10 items-center justify-center rounded-full transition-all ${
+									getStepNumber() >= 3
+										? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg scale-110'
+										: 'bg-slate-200 dark:bg-slate-700 text-slate-500'
+								}`}
+							>
+								<FileText className="h-5 w-5" />
+							</div>
+							<span
+								className={`font-medium transition-all ${
+									getStepNumber() >= 3
+										? 'text-slate-900 dark:text-white'
+										: 'text-slate-500'
+								}`}
+							>
+								Create Case
+							</span>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
 
-      {/* Step Content */}
-      <Card>
-        <CardContent className="pt-6">
-          {currentStep === "choice" && (
-            <DebtorChoiceStep
-              onSelect={handleDebtorChoice}
-              selectedChoice={selectedChoice}
-            />
-          )}
+			{/* Step Content */}
+			<Card className="border-2 shadow-lg">
+				<CardContent className="pt-6">
+					{currentStep === 'choice' && (
+						<DebtorChoiceStep
+							onSelect={handleDebtorChoice}
+							selectedChoice={selectedChoice}
+						/>
+					)}
 
-          {currentStep === "debtor-create" && (
-            <DebtorCreationStep
-              onSubmit={handleDebtorCreate}
-              onBack={handleBack}
-              isSubmitting={isSubmitting}
-            />
-          )}
+					{currentStep === 'debtor-create' && (
+						<DebtorCreationStep
+							onSubmit={handleDebtorCreate}
+							onBack={handleBack}
+							isSubmitting={isSubmitting}
+						/>
+					)}
 
-          {currentStep === "debtor-select" && (
-            <DebtorSelectionStep
-              debtors={debtors}
-              onSelect={handleDebtorSelect}
-              onBack={handleBack}
-              selectedDebtorId={selectedDebtorId}
-            />
-          )}
+					{currentStep === 'debtor-select' && (
+						<DebtorSelectionStep
+							debtors={debtors}
+							onSelect={handleDebtorSelect}
+							onBack={handleBack}
+							selectedDebtorId={selectedDebtorId}
+						/>
+					)}
 
-          {currentStep === "case-create" && selectedDebtor && (
-            <CaseCreationStep
-              debtorId={selectedDebtor.id}
-              debtorName={getDebtorName(selectedDebtor)}
-              onSubmit={handleCaseCreate}
-              onBack={handleBack}
-              isSubmitting={isSubmitting}
-            />
-          )}
-        </CardContent>
-      </Card>
-    </div>
-  );
+					{currentStep === 'case-create' && selectedDebtor && (
+						<CaseCreationStep
+							debtorId={selectedDebtor.id}
+							debtorName={getDebtorName(selectedDebtor)}
+							onSubmit={handleCaseCreate}
+							onBack={handleBack}
+							isSubmitting={isSubmitting}
+						/>
+					)}
+				</CardContent>
+			</Card>
+		</div>
+	)
 }

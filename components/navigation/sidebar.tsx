@@ -16,6 +16,7 @@ import {
 	SidebarMenu,
 	SidebarMenuButton,
 	SidebarMenuItem,
+	SidebarHeader,
 } from '@/components/ui/sidebar'
 
 const navigationItems = [
@@ -41,6 +42,17 @@ export function AppSidebar() {
 
 	return (
 		<Sidebar>
+			<SidebarHeader className="border-b border-sidebar-border px-4 py-4">
+				<Link href="/dashboard" className="flex items-center gap-3 group">
+					<div className="h-10 w-10 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 flex items-center justify-center shadow-lg group-hover:shadow-xl transition-all">
+						<span className="text-white font-bold text-lg">DC</span>
+					</div>
+					<div className="flex flex-col">
+						<span className="font-bold text-sidebar-foreground text-base">Debt Collection</span>
+						<span className="text-xs text-sidebar-foreground/60">Management System</span>
+					</div>
+				</Link>
+			</SidebarHeader>
 			<SidebarContent>
 				<SidebarGroup>
 					<SidebarGroupLabel>Navigation</SidebarGroupLabel>

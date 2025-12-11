@@ -74,21 +74,23 @@ export default async function NewCasePage() {
 
   const debtors = await getDebtorsByOrganization(organization.id);
 
-  return (
-    <div className="flex flex-col gap-6 p-6">
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Create New Case</h1>
-        <p className="text-muted-foreground">
-          Follow the steps below to create a new case
-        </p>
-      </div>
+	return (
+		<div className="flex flex-col gap-6 p-6 bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-950 dark:to-slate-900 min-h-screen">
+			<div>
+				<h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 to-slate-700 dark:from-white dark:to-slate-300 bg-clip-text text-transparent">
+					Create New Case
+				</h1>
+				<p className="text-slate-600 dark:text-slate-400 mt-1">
+					Follow the steps below to create a new debt collection case
+				</p>
+			</div>
 
-      <CaseCreationStepper
-        organizationId={organization.id}
-        debtors={debtors}
-        onCreateDebtor={handleCreateDebtor}
-        onCreateCase={handleCreateCase}
-      />
-    </div>
-  );
+			<CaseCreationStepper
+				organizationId={organization.id}
+				debtors={debtors}
+				onCreateDebtor={handleCreateDebtor}
+				onCreateCase={handleCreateCase}
+			/>
+		</div>
+	)
 }
