@@ -1,11 +1,9 @@
 import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
-import { Decimal } from "@prisma/client/runtime/library";
 import type { CreatePaymentLinkData } from "@/lib/validations/payment-schema";
+import { Decimal } from "@prisma/client/runtime/client";
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {
-  apiVersion: "2024-11-20.acacia",
-});
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {});
 
 export interface PaymentLinkResult {
   paymentId: string;
