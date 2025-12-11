@@ -1,0 +1,84 @@
+import { auth } from "@clerk/nextjs/server";
+import { redirect } from "next/navigation";
+import { CaseCreationStepper } from "@/components/case-creation/case-creation-stepper";
+import { getOrganizationByUserId } from "@/lib/server/organizations-service";
+import {
+  getDebtorsByOrganization,
+  createDebtor,
+} from "@/lib/server/debtors-service";
+import { createCase } from "@/lib/server/cases-service";
+import { revalidatePath } from "next/cache";
+import type { DebtorFormData } from "@/lib/validations/debtor-schema";
+import type { CaseFormData } from "@/lib/validations/case-schema";
+
+async function handleCreateDebtor(
+  data: DebtorFormData & { organizationId: string }
+) {
+  "use server";
+
+  try {
+    const debtor = await createDebtor(data);
+    return { id: debtor.id };
+  } catch (error) {
+    console.error("Error in handleCreateDebtor:", error);
+    throw error;
+  }
+}
+
+async function handleCreateCase(
+  data: CaseFormData & { debtorId: string; organizationId: string }
+) {
+  "use server";
+
+  try {
+    await createCase(data);
+    revalidatePath("/cases");
+    redirect("/cases");
+  } catch (error) {
+    console.error("Error in handleCreateCase:", error);
+    throw error;
+  }
+}
+
+export default async function NewCasePage() {
+  const { userId } = await auth();
+
+  if (!userId) {
+    redirect("/");
+  }
+
+  let organization;
+  try {
+    organization = await getOrganizationByUserId(userId);
+  } catch (error) {
+    console.error("Error fetching organization:", error);
+    return (
+      <div className="flex flex-col gap-6 p-6">
+        <div className="text-center text-destructive">
+          <h1 className="text-2xl font-semibold mb-2">Error</h1>
+          <p>Unable to find your organization. Please contact support.</p>
+        </div>
+      </div>
+    );
+  }
+
+  const debtors = await getDebtorsByOrganization(organization.id);
+
+  return (
+    <div className="flex flex-col gap-6 p-6">
+      <div>
+        <h1 className="text-3xl font-bold tracking-tight">Create New Case</h1>
+        <p className="text-muted-foreground">
+          Follow the steps below to create a new case
+        </p>
+      </div>
+
+      <CaseCreationStepper
+        organizationId={organization.id}
+        debtors={debtors}
+        onCreateDebtor={handleCreateDebtor}
+        onCreateCase={handleCreateCase}
+      />
+    </div>
+  );
+}
