@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { ElevenLabsWidget } from "./components/elevenlabs-widget";
 
 export default function Home() {
   return (
@@ -60,6 +61,7 @@ export default function Home() {
           </a>
         </div>
       </main>
+      <ElevenLabsWidget />
     </div>
   );
 }
