@@ -75,9 +75,7 @@ Conversation transcript:
 ${conversationText}`;
 
     const { object } = await generateObject({
-      model: anthropic("claude-3-5-sonnet-20241022", {
-        apiKey: process.env.ANTHROPIC_API_KEY,
-      }),
+      model: anthropic("claude-3-5-sonnet-20241022"),
       schema: paymentExtractionSchema,
       prompt,
     });
