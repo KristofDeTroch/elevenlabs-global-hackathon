@@ -2,12 +2,100 @@ import Stripe from "stripe";
 import { prisma } from "@/lib/prisma";
 import type { CreatePaymentLinkData } from "@/lib/validations/payment-schema";
 import { Decimal } from "@prisma/client/runtime/client";
+import { anthropic } from "@ai-sdk/anthropic";
+import { generateObject } from "ai";
+import { z } from "zod";
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "", {});
 
 export interface PaymentLinkResult {
   paymentId: string;
   paymentLinkUrl: string;
+}
+
+export interface TranscriptMessage {
+  role: string;
+  message: string;
+}
+
+export interface ExtractedPaymentInfo {
+  amount: string | null;
+  customerEmail: string | null;
+  customerName: string | null;
+}
+
+const paymentExtractionSchema = z.object({
+  amount: z
+    .string()
+    .nullable()
+    .describe(
+      "The payment amount mentioned in the conversation, as a string number (e.g., '500.00' for $500). Return null if no amount is mentioned."
+    ),
+  customerEmail: z
+    .string()
+    .email()
+    .nullable()
+    .describe(
+      "The customer's email address if mentioned in the conversation. Return null if not mentioned."
+    ),
+  customerName: z
+    .string()
+    .nullable()
+    .describe(
+      "The customer's full name if mentioned in the conversation. Return null if not mentioned."
+    ),
+});
+
+/**
+ * Extract payment information from a conversation transcript using AI.
+ * Uses Anthropic Claude to extract structured payment data from natural language.
+ */
+export async function extractPaymentInfoFromTranscript(
+  transcript: TranscriptMessage[]
+): Promise<ExtractedPaymentInfo> {
+  try {
+    // Convert transcript array to a readable conversation format
+    const conversationText = transcript
+      .map(
+        (msg) =>
+          `${msg.role === "agent" ? "Agent" : "Customer"}: ${msg.message}`
+      )
+      .join("\n\n");
+
+    const prompt = `Analyze the following conversation transcript and extract payment information if mentioned.
+
+Extract:
+1. Payment amount - any dollar amount or payment figure mentioned (convert to numeric string format, e.g., "500.00" for $500)
+2. Customer email - any email address mentioned by the customer
+3. Customer name - the customer's full name if mentioned
+
+If any information is not mentioned in the conversation, return null for that field.
+
+Conversation transcript:
+${conversationText}`;
+
+    const { object } = await generateObject({
+      model: anthropic("claude-3-5-sonnet-20241022", {
+        apiKey: process.env.ANTHROPIC_API_KEY,
+      }),
+      schema: paymentExtractionSchema,
+      prompt,
+    });
+
+    return {
+      amount: object.amount,
+      customerEmail: object.customerEmail,
+      customerName: object.customerName,
+    };
+  } catch (error) {
+    console.error("Error extracting payment info from transcript:", error);
+    // Return nulls on error to allow fallback in webhook handler
+    return {
+      amount: null,
+      customerEmail: null,
+      customerName: null,
+    };
+  }
 }
 
 /**
