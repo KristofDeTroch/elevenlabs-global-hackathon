@@ -1,5 +1,4 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { ElevenLabsWidget } from '../components/elevenlabs-widget'
 import { Button } from '@/components/ui/button'
 import { FolderOpen, AlertCircle, Users, DollarSign, Plus, FileText, UserPlus, TrendingUp, Activity } from 'lucide-react'
 import Link from 'next/link'
@@ -166,8 +165,6 @@ export default function DashboardPage() {
 					</CardContent>
 				</Card>
 			</div>
-			
-			<ElevenLabsWidget />
 		</div>
 	)
 }
