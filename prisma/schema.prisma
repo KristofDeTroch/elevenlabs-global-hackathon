@@ -1,5 +1,5 @@
 datasource db {
-    provider = "postgresql" // or mysql/sqlite
+    provider = "postgresql"
 }
 
 generator client {
@@ -10,6 +10,12 @@ generator client {
 // User Management & RBAC
 // --------------------------------------
 
+enum RoleType {
+    ADMIN
+    MEMBER
+    VIEWER
+}
+
 model User {
     id        String   @id @default(uuid())
     email     String   @unique
@@ -17,8 +23,7 @@ model User {
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
 
-    memberships   OrganizationMember[]
-    eventsCreated CaseEvent[] // Audit trail: who did what?
+    roles Role[]
 }
 
 model Organization {
@@ -26,38 +31,24 @@ model Organization {
     name      String
     createdAt DateTime @default(now())
 
-    memberships OrganizationMember[]
-    roles       Role[]
-    debtors     Debtor[]
-    cases       Case[]
+    roles   Role[]
+    debtors Debtor[]
+    cases   Case[]
 }
 
 model Role {
-    id             String       @id @default(uuid())
-    name           String // e.g., "Admin", "Collection Agent", "Viewer"
-    description    String?
+    id             String   @id @default(uuid())
+    userId         String?
     organizationId String
-    organization   Organization @relation(fields: [organizationId], references: [id])
+    name           String?
+    type           RoleType @default(MEMBER)
 
-    // You can add a JSON field here later for granular permissions (e.g., { "canEditPayments": true })
-    permissions Json?
-
-    members OrganizationMember[]
-
-    @@unique([name, organizationId]) // Prevent duplicate role names in one Org
-}
-
-model OrganizationMember {
-    id             String @id @default(uuid())
-    userId         String
-    organizationId String
-    roleId         String
-
-    user         User         @relation(fields: [userId], references: [id])
+    user         User?        @relation(fields: [userId], references: [id])
     organization Organization @relation(fields: [organizationId], references: [id])
-    role         Role         @relation(fields: [roleId], references: [id])
 
-    @@unique([userId, organizationId]) // A user can't join the same org twice
+    caseEvents CaseEvent[]
+
+    @@unique([userId, organizationId]) // A user can't join the same org twice (when userId is not null)
 }
 
 // --------------------------------------
@@ -164,11 +155,17 @@ model Payment {
     amount Decimal       @db.Decimal(10, 2)
     status PaymentStatus @default(PLANNED)
 
-    scheduledDate DateTime // When it is supposed to happen
+    scheduledDate DateTime? // When it is supposed to happen (optional for immediate payments)
     processedDate DateTime? // When it actually happened
 
     method    String? // "STRIPE", "ACH", "CHECK"
     reference String? // Transaction ID
+
+    // Stripe integration fields
+    stripePaymentLinkId     String? // Stripe Payment Link ID
+    stripeCustomerId        String? // Stripe Customer ID
+    stripeCheckoutSessionId String? // Stripe Checkout Session ID for webhook matching
+    paymentLinkUrl          String? // The URL to share with the customer
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt
@@ -189,8 +186,8 @@ model CaseEvent {
     caseId String
     case   Case   @relation(fields: [caseId], references: [id])
 
-    userId String? // Nullable because system might create events (auto-reminders)
-    user   User?   @relation(fields: [userId], references: [id])
+    roleId String? // Nullable because system might create events (auto-reminders)
+    role   Role?   @relation(fields: [roleId], references: [id])
 
     type        EventType
     description String // "Call lasted 5m, debtor hung up"
