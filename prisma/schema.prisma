@@ -155,11 +155,17 @@ model Payment {
     amount Decimal       @db.Decimal(10, 2)
     status PaymentStatus @default(PLANNED)
 
-    scheduledDate DateTime // When it is supposed to happen
+    scheduledDate DateTime? // When it is supposed to happen (optional for immediate payments)
     processedDate DateTime? // When it actually happened
 
     method    String? // "STRIPE", "ACH", "CHECK"
     reference String? // Transaction ID
+
+    // Stripe integration fields
+    stripePaymentLinkId     String? // Stripe Payment Link ID
+    stripeCustomerId        String? // Stripe Customer ID
+    stripeCheckoutSessionId String? // Stripe Checkout Session ID for webhook matching
+    paymentLinkUrl          String? // The URL to share with the customer
 
     createdAt DateTime @default(now())
     updatedAt DateTime @updatedAt

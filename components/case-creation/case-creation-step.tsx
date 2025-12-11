@@ -31,9 +31,9 @@ export function CaseCreationStep({
   isSubmitting = false,
 }: CaseCreationStepProps) {
   const [formData, setFormData] = useState<CaseFormData>({
-    originalAmount: "",
-    currentBalance: "",
-    interestRate: "",
+    originalAmount: "1000.00",
+    currentBalance: "1000.00",
+    interestRate: "0.00",
     externalReference: "",
     dueDate: "",
     lastContactDate: "",
@@ -127,7 +127,6 @@ export function CaseCreationStep({
               min="0"
               value={formData.originalAmount}
               onChange={(e) => handleOriginalAmountChange(e.target.value)}
-              placeholder="1000.00"
               required
               aria-invalid={!!errors.originalAmount}
             />
@@ -145,7 +144,6 @@ export function CaseCreationStep({
               min="0"
               value={formData.currentBalance}
               onChange={(e) => updateField("currentBalance", e.target.value)}
-              placeholder="1000.00"
               required
               aria-invalid={!!errors.currentBalance}
             />
@@ -166,7 +164,6 @@ export function CaseCreationStep({
               min="0"
               value={formData.interestRate || ""}
               onChange={(e) => updateField("interestRate", e.target.value)}
-              placeholder="0.00"
               aria-invalid={!!errors.interestRate}
             />
             {errors.interestRate && (
@@ -191,7 +188,6 @@ export function CaseCreationStep({
             <Input
               value={formData.externalReference || ""}
               onChange={(e) => updateField("externalReference", e.target.value)}
-              placeholder="INV-1001"
             />
             <p className="text-xs text-muted-foreground mt-1">
               Optional reference ID from your system

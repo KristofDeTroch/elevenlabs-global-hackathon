@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
 import { CaseCreationStepper } from "@/components/case-creation/case-creation-stepper";
 import { getOrganizationByUserId } from "@/lib/server/organizations-service";
@@ -47,16 +47,26 @@ export default async function NewCasePage() {
     redirect("/");
   }
 
+  // Get user info from Clerk for fallback organization creation
+  const user = await currentUser();
+  const userEmail = user?.emailAddresses?.[0]?.emailAddress;
+  const userName =
+    user?.firstName || user?.lastName
+      ? `${user.firstName || ""} ${user.lastName || ""}`.trim()
+      : null;
+
   let organization;
   try {
-    organization = await getOrganizationByUserId(userId);
+    organization = await getOrganizationByUserId(userId, userEmail, userName);
   } catch (error) {
     console.error("Error fetching organization:", error);
     return (
       <div className="flex flex-col gap-6 p-6">
         <div className="text-center text-destructive">
           <h1 className="text-2xl font-semibold mb-2">Error</h1>
-          <p>Unable to find your organization. Please contact support.</p>
+          <p>
+            Unable to find or create your organization. Please contact support.
+          </p>
         </div>
       </div>
     );
