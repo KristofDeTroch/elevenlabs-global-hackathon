@@ -121,7 +121,7 @@ export default async function CasesPage() {
                       </Badge>
                     </TableCell>
                     <TableCell>
-                      {formatCurrency(caseItem.currentBalance)}
+                      {formatCurrency(caseItem.currentBalance.toNumber())}
                     </TableCell>
                     <TableCell>{formatDate(caseItem.dueDate)}</TableCell>
                     <TableCell>{caseItem.externalReference || "-"}</TableCell>

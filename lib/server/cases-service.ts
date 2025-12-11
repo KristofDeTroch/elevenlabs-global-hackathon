@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma";
+import { Prisma } from "@prisma/client";
 import { Decimal } from "@prisma/client/runtime/client";
 
 export interface CreateCaseData {
@@ -122,7 +123,7 @@ export async function createCase(data: CreateCaseData) {
         dueDate,
         lastContactDate,
         nextActionDate,
-        details: data.details,
+        details: data.details ? JSON.stringify(data.details) : Prisma.JsonNull,
       },
     });
 
